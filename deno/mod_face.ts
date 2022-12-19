@@ -16,7 +16,7 @@ import {PlatformBrowser} from 'https://cdn.skypack.dev/@tensorflow/tfjs-core/dis
 // console.log(tf);
 console.log(PlatformBrowser);
 tf.env().setPlatform('browser', new PlatformBrowser());
-// import 'https://cdn.skypack.dev/@tensorflow/tfjs-backend-webgpu'
+import 'https://cdn.skypack.dev/@tensorflow/tfjs-backend-webgpu'
 import * as faceDetection from 'https://cdn.skypack.dev/@tensorflow-models/face-detection';
 import * as poseDetection from 'https://cdn.skypack.dev/@tensorflow-models/pose-detection';
 import {getPredictionData} from './util.js';
@@ -102,28 +102,36 @@ async function dumpFaceDetection() {
     return await model.predict(image);
   };
 
-  // step 1: run the expected backend.
-  const expectedBackend = 'cpu';
-  await tf.setBackend(expectedBackend);
-  await tf.ready();
-  const expectedResult = await predictAndGetData(model, predict, input);
-  // console.log(expectedResult['intermediateData']);
+  let expectedResult;
+  const expectedBackend = 'webgpu';
+  {
+    // initialize tensorflow
+    await tf.setBackend(expectedBackend);
+    await tf.ready();
+    expectedResult = await predictAndGetData(model, predict, input);
+    // console.log(expectedResult['intermediateData']);
+  }
 
-  // step 2: run the actual backend.
+  let actualResult;
   const actualBackend = 'cpu';
-  await tf.setBackend(actualBackend);
-  await tf.ready();
-  const actualResult = await predictAndGetData(model, predict, input);
-  // console.log(actualResult['intermediateData']);
+  {
+    // initialize tensorflow
+    await tf.setBackend(actualBackend);
+    await tf.ready();
+    actualResult = await predictAndGetData(model, predict, input);
+    // console.log(actualResult['intermediateData']);
+  }
 
-  // step3: dump.
   if (enableDump) {
+    const actualIntermediateObject = actualResult['intermediateData'];
+    const expectedIntermediateObject = expectedResult['intermediateData'];
+
     const dumpLevel = 0;
     const dumpLength = 1;
     const dumpPrefix = 'face_detection';
     const dumpInput = {
-      [actualBackend]: actualResult['intermediateData'],
-      [expectedBackend + 'expected']: expectedResult['intermediateData'],
+      [actualBackend]: actualIntermediateObject,
+      [expectedBackend + 'expected']: expectedIntermediateObject
     };
     await dump(model, dumpInput, dumpPrefix, dumpLevel, dumpLength);
     console.log('Dump end');
