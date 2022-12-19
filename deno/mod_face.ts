@@ -43,15 +43,11 @@ export function getGraphModel(model) {
 async function predictAndGetData(
     model, predict: (model: any, image: any) => Promise<any>, image) {
   let enableDump = true
-  console.log(model.moveNetModel instanceof tf.GraphModel)
-  // console.log(model.moveNetModel && model.moveNetModel instanceof
-  // tf.GraphModel);
   const prediction = await predict(model, image);
   let intermediateData = {};
   if (enableDump) {
     const graphModel = getGraphModel(model);
     if (graphModel) {
-      console.log(graphModel.getIntermediateTensors())
       intermediateData =
           await getIntermediateTensorInfo(graphModel.getIntermediateTensors());
       graphModel.disposeIntermediateTensors();
@@ -93,7 +89,6 @@ detector.estimatePoses(image); console.log(poses['intermediateData'])
 }
 */
 
-
 {
   const inputResolution = 128;
   const input = tf.zeros([1, inputResolution, inputResolution, 3]);
@@ -103,15 +98,40 @@ detector.estimatePoses(image); console.log(poses['intermediateData'])
       `https://tfhub.dev/mediapipe/tfjs-model/face_detection/${modelSize}/1`;
   const model = await tf.loadGraphModel(url, {fromTFHub: true});
 
-
+  const enableDump= true;
   let predict = async (model, image) => {
     return await model.predict(image);
   };
 
-  // initialize tensorflow
-  await tf.setBackend('cpu');
-  // await tf.setBackend('cpu')
-  await tf.ready();
-  const poses2 = await predictAndGetData(model, predict, input);
-  console.log(poses2['intermediateData']);
+  let expectedResult;
+  const expectedBackend = 'cpu';
+  {
+    // initialize tensorflow
+    await tf.setBackend(expectedBackend);
+    await tf.ready();
+    expectedResult = await predictAndGetData(model, predict, input);
+    // console.log(expectedResult['intermediateData']);
+  }
+
+  let actualResult;
+  const actualBackend = 'cpu';
+  {
+    // initialize tensorflow
+    await tf.setBackend(actualBackend);
+    await tf.ready();
+    actualResult = await predictAndGetData(model, predict, input);
+    //console.log(actualResult['intermediateData']);
+  }
+
+  if (enableDump) {
+    const actualIntermediateObject = actualResult['intermediateData'];
+    const expectedIntermediateObject = expectedResult['intermediateData'];
+
+    const dumpLevel = 0;
+    const dumpLength = 1;
+    const dumpPrefix = 'face_detection';
+    const dumpInput = {[actualBackend] : actualIntermediateObject, [expectedBackend+'expected'] : expectedIntermediateObject};
+    await dump(model, dumpInput, dumpPrefix, dumpLevel, dumpLength);
+    console.log("Dump end");
+  }
 }
