@@ -16,7 +16,7 @@ import {PlatformBrowser} from 'https://cdn.skypack.dev/@tensorflow/tfjs-core/dis
 // console.log(tf);
 console.log(PlatformBrowser);
 tf.env().setPlatform('browser', new PlatformBrowser());
-// import 'https://cdn.skypack.dev/@tensorflow/tfjs-backend-webgpu'
+import 'https://cdn.skypack.dev/@tensorflow/tfjs-backend-webgpu'
 import * as faceDetection from 'https://cdn.skypack.dev/@tensorflow-models/face-detection';
 import * as poseDetection from 'https://cdn.skypack.dev/@tensorflow-models/pose-detection';
 import {getPredictionData} from './util.js';
@@ -110,7 +110,7 @@ async function dumpFaceDetection() {
   // console.log(expectedResult['intermediateData']);
 
   // step 2: run the actual backend.
-  const actualBackend = 'cpu';
+  const actualBackend = 'webgpu';
   await tf.setBackend(actualBackend);
   await tf.ready();
   const actualResult = await predictAndGetData(model, predict, input);

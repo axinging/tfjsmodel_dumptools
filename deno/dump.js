@@ -92,11 +92,17 @@ async function saveObjectsToFile(jsonObjects, prefix) {
   for (let i = 0; i < backends.length; i++) {
     const object = jsonObjects[backends[i]];
     const fileName = `${newPrefix}${backends[i]}.json`;
-    const a = document.createElement('a');
-    const file = new Blob([JSON.stringify(object)], {type: 'application/json'});
-    a.href = URL.createObjectURL(file);
-    a.download = fileName;
-    a.click();
+    await Deno.writeTextFile(fileName, JSON.stringify(object));
+    const data = await Deno.readTextFile(fileName);
+    let tensorsMap = JSON.parse(data);
+
+    const keysOfTensors = Object.keys(tensorsMap);
+    for (let i = 0; i < keysOfTensors.length; i++) {
+      const key = keysOfTensors[i].replace(/\//g, '-');
+      console.log(key);
+      console.log(tensorsMap[keysOfTensors[i]]);
+      await Deno.writeTextFile(`${key}.json`,  JSON.stringify(tensorsMap[keysOfTensors[i]]));
+    }
     // This log informs tools file has been saved.
     console.log(fileName);
   }
