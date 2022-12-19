@@ -27,8 +27,8 @@ export function getGraphModel(model) {
     } else if (
         model.baseModel && model.baseModel.model instanceof tf.GraphModel) {
       return model.baseModel.model;
-    } else if (
-        model.moveNetModel && model.moveNetModel instanceof tf.GraphModel) {
+    } else if (model.moveNetModel) {
+      // model.moveNetModel instanceof tf.GraphModel
       return model.moveNetModel;
     } else {
       console.warn(`Model doesn't support dump!`);
@@ -38,8 +38,8 @@ export function getGraphModel(model) {
 
 async function predictAndGetData(model, predict: (model: any, image: any) => Promise<any>, image) {
     let enableDump = true
-    console.log(model.moveNetModel)
-    console.log(model.moveNetModel && model.moveNetModel instanceof tf.GraphModel);
+    console.log(model.moveNetModel instanceof tf.GraphModel)
+    // console.log(model.moveNetModel && model.moveNetModel instanceof tf.GraphModel);
     const prediction = await predict(model, image);
     let intermediateData = {};
     if (enableDump) {
@@ -64,7 +64,7 @@ await tf.ready()
 
 console.log('isBrowser:', tf.device_util.isBrowser())
 console.log('IS_BROWSER:', tf.env().getBool('IS_BROWSER'));
-/*
+
 {
   const detectorConfig = {
     modelType: poseDetection.movenet.modelType.MULTIPOSE_LIGHTNING,
@@ -81,7 +81,8 @@ console.log('IS_BROWSER:', tf.env().getBool('IS_BROWSER'));
   const poses = await predictAndGetData(detector, predict, image);// await detector.estimatePoses(image);
   console.log(poses['intermediateData'])
 }
-*/
+
+/*
 {
   const inputResolution = 128;
   const input = tf.zeros([1, inputResolution, inputResolution, 3]);
@@ -98,3 +99,4 @@ console.log('IS_BROWSER:', tf.env().getBool('IS_BROWSER'));
   const poses = await predictAndGetData(model, predict, input)
   console.log(poses['intermediateData'])
 }
+*/
